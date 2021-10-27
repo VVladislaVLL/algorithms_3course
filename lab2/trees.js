@@ -161,9 +161,3 @@ class BinarySearchTree {
         return bst;
     }
 }
-
-const arr = [10, 0, 12, 2, 3, 4, -1, -2, -3, -4, 17, 5];
-const bst = BinarySearchTree.createBinarySearchTree(arr);
-console.log(bst.toString());
-
-bst.postOrderTraverse(bst.root, (node) => console.log(node))
