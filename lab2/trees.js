@@ -9,6 +9,7 @@ class Node {
 }
 
 class BinarySearchTree {
+    _counter = 0;
     constructor() {
         this.root = null;
     }
@@ -25,8 +26,8 @@ class BinarySearchTree {
         const newNode = new Node(data);
         if (this.root === null) {
             this.root = newNode;
-            newNode.parent = null;
-            this.height = 1;
+            this.root.parent = null;
+            this.root.height = 1;
         } else {
             this._insertNode(this.root, newNode);
         }
@@ -152,22 +153,27 @@ class BinarySearchTree {
     }
 
     // К-ый наименьший элемент
-    getKthSmallestElement(root, k) {
-        if (!root) {
+    _getKthSmallestElement(root, k) {
+        if (root === null) {
             return null;
         }
+        let left = this._getKthSmallestElement(root.left, k);
 
-        const left = this.getKthSmallestElement(root.left ,k);
-        if (left) {
+        if (left !== null) {
             return left;
         }
-
-        k -= 1;
-        if (k === 0) {
+        this._counter++;
+        if (this._counter === k) {
             return root;
         }
 
-        return this.getKthSmallestElement(root.left, k);
+        return this._getKthSmallestElement(root.right, k);
+    }
+
+    findKthSmallestElement(root, k) {
+        const kthSmallestElement = this._getKthSmallestElement(root, k);
+        this._counter = 0;
+        return kthSmallestElement;
     }
 
     balancingBinarySearchTree() {
@@ -188,5 +194,6 @@ class BinarySearchTree {
 
 const arrayToBST = [1, 4, -10, 3, 9, 2, 12, 0, 34, 5, 6, -1];
 const bst = BinarySearchTree.createBinarySearchTree(arrayToBST);
-console.log(bst.getKthSmallestElement(bst.root, 1));
+console.log('TREE = ', bst);
+console.log('KthSmallestElement', bst.findKthSmallestElement(bst.root, 9));
 
