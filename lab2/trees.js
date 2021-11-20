@@ -3,23 +3,21 @@ class Node {
         this.data = data;
         this.left = null;
         this.right = null;
-        this.parent = null;
-        this.height = null;
+    }
+
+    static getHeight(root) {
+        if (root === null) {
+            return 0;
+        }
+        return Math.max(this.getHeight(root.left), this.getHeight(root.right)) + 1;
     }
 }
 
 class BinarySearchTree {
     _counter = 0;
+
     constructor() {
         this.root = null;
-    }
-
-    depthFirst(node) {
-        if (node) {
-            console.log(node.data);
-            this.depthFirst(node.left);
-            this.depthFirst(node.right)
-        }
     }
 
     insert(data) {
@@ -53,7 +51,6 @@ class BinarySearchTree {
         }
     }
 
-    // Центрированный обход
     inOrderTraverse(node, callback) {
         if (node !== null) {
             this.inOrderTraverse(node.left, callback);
@@ -77,7 +74,6 @@ class BinarySearchTree {
         }
     }
 
-    // Прямой обход
     preOrderTraverse(node, callback) {
         if (node != null) {
             callback(node.data);
@@ -104,7 +100,8 @@ class BinarySearchTree {
             }
         }
     }
-   // Обратный обход
+
+    // Обратный обход
     postOrderTraverse(node, callback) {
         if (node != null) {
             this.postOrderTraverse(node.left, callback);
@@ -176,7 +173,40 @@ class BinarySearchTree {
         return kthSmallestElement;
     }
 
-    balancingBinarySearchTree() {
+    balance() {
+        if (!this.isBalanced(this.root)) {
+            const nodes = []
+
+            this.inOrderTraverse(this.root, (node) => {
+                nodes.push(node)
+            })
+
+            this.root = this.buildBalancedTree(nodes, 1, nodes.length)
+        }
+    }
+
+    buildBalancedTree(nodes, start, end) {
+        if (start > end) {
+            return null;
+        }
+
+        const mid = Math.floor((start + end) / 2);
+        const sep = this.findKthSmallestElement(this.root, mid);
+        sep.left = this.buildBalancedTree(nodes, start, mid - 1);
+        sep.right = this.buildBalancedTree(nodes, mid + 1, end);
+
+        return sep;
+    }
+
+    isBalanced(root) {
+        if (root === null) {
+            return true;
+        }
+
+        const leftHeight = Node.getHeight(root.left);
+        const rightHeight = Node.getHeight(root.right);
+
+        return Math.abs(leftHeight - rightHeight) <= 1 && this.isBalanced(root.left) && this.isBalanced(root.right);
     }
 
     toString() {
@@ -196,4 +226,22 @@ const arrayToBST = [1, 4, -10, 3, 9, 2, 12, 0, 34, 5, 6, -1];
 const bst = BinarySearchTree.createBinarySearchTree(arrayToBST);
 console.log('TREE = ', bst);
 console.log('KthSmallestElement', bst.findKthSmallestElement(bst.root, 9));
+let traverse = [];
+bst.inOrderTraverse(bst.root, (el) => {
+    traverse.push(el.data);
+});
+console.log('inorder', traverse)
+traverse = [];
+bst.preOrderTraverse(bst.root, (data) => {
+    traverse.push(data);
+})
+console.log('preorder', traverse)
+traverse = [];
+bst.postOrderTraverse(bst.root, (data) => {
+    traverse.push(data);
+})
+console.log('postorder', traverse);
 
+
+bst.balance();
+console.log('balance', bst);
