@@ -1,25 +1,22 @@
-export type Vertex = string;
-export type ConnectivityComponent = Vertex[];
-export type VisitedVertexes = { [vertex: Vertex]: boolean };
-export type Rib = [Vertex, Vertex];
+import {Colors, ConnectivityComponent, Rib, Vertex, VisitedVertexes} from './model';
 
 export class Graph {
     private readonly numberOfVertices: number;
-    private adjacentList: Map<Vertex, Vertex[]>;
-    private isBipartite: boolean = true;
+    private readonly adjacentList: Map<Vertex, Vertex[]>;
+    private vertexColors: Map<Vertex, Colors>
 
     constructor(noOfVertices: any) {
         this.numberOfVertices = noOfVertices;
         this.adjacentList = new Map();
+        this.vertexColors = new Map();
     }
 
-    get vertexes(): Vertex[] {
+    private get vertices(): Vertex[] {
         return Array.from(this.adjacentList.keys());
     }
 
-    get ribs(): Rib[] {
-        const copyAdjacentList = new Map(this.adjacentList);
-        return this.vertexes.reduce((ribs: Rib[], vertex: Vertex) => {
+    private get ribs(): Rib[] {
+        return this.vertices.reduce((ribs: Rib[], vertex: Vertex) => {
             const adjacentVertexes = this.adjacentList.get(vertex);
             adjacentVertexes.forEach((adjacentVertex: Vertex) => {
                 if (!this.isRibsContainsThisRib([vertex, adjacentVertex], ribs)) {
@@ -30,10 +27,46 @@ export class Graph {
         }, []);
     }
 
-    private isRibsContainsThisRib(ribToCheck: Rib, ribs: Rib[]): boolean {
-        return !!ribs.find((rib: Rib) => {
-           return JSON.stringify(rib) === JSON.stringify(ribToCheck) || JSON.stringify(rib) === JSON.stringify(ribToCheck.reverse())
-        });
+    public get isEulerian(): boolean {
+        let flag: boolean = true;
+        let oddVertex: number = 0;
+
+        this.vertices.forEach((vertex: Vertex) => {
+            const vertexDegree = this.adjacentList.get(vertex).length;
+            if (!vertexDegree) {
+                flag = false;
+                return;
+            } else if (vertexDegree % 2) {
+                oddVertex += 1;
+            }
+        })
+
+        if (oddVertex > 2 || oddVertex === 1) {
+            return false;
+        }
+
+        return flag;
+    }
+
+    public get isBipartite(): boolean {
+        const queue = [Array.from(this.adjacentList)[0]];
+        this.vertexColors.set(queue[0][0], Colors.White);
+
+        let flag: boolean = true;
+        while (queue.length) {
+            const v1 = queue.shift();
+            v1[1].forEach((v2: Vertex) => {
+                if (!this.vertexColors.get(v2)) {
+                    this.vertexColors.set(v2, this.vertexColors.get(v1[0]) === Colors.White ? Colors.Black : Colors.White);
+                    queue.unshift([v2, this.adjacentList.get(v2)]);
+                } else if (this.vertexColors.get(v2) === this.vertexColors.get(v1[0])) {
+                    flag = false;
+                    return;
+                }
+            });
+        }
+
+        return flag;
     }
 
     public addVertex(vertex: Vertex): this {
@@ -41,7 +74,7 @@ export class Graph {
         return this;
     }
 
-    public addVertexes(vertex: Vertex[]): this {
+    public addVertices(vertex: Vertex[]): this {
         vertex.forEach((vertex: Vertex) => {
             this.addVertex(vertex);
         });
@@ -54,15 +87,10 @@ export class Graph {
         return this;
     }
 
-    public printGraph(): void {
-        const keys = Array.from(this.adjacentList.keys());
-        keys.forEach((key: Vertex) => {
-            const values = this.adjacentList.get(key);
-            let representation: string = '';
-            values.forEach((value: Vertex) => {
-                representation += value + ' ';
-                console.log(value + ' -> ' + representation);
-            });
+    private isRibsContainsThisRib(ribToCheck: Rib, ribs: Rib[]): boolean {
+        return !!ribs.find((rib: Rib) => {
+            return JSON.stringify(rib) === JSON.stringify(ribToCheck)
+                || JSON.stringify(rib) === JSON.stringify(ribToCheck.reverse());
         });
     }
 
@@ -82,7 +110,7 @@ export class Graph {
         const visitedVertexes: VisitedVertexes = {};
         let component: ConnectivityComponent = [];
 
-        return this.vertexes.reduce((connectivityComponents: ConnectivityComponent[], vertex: Vertex) => {
+        return this.vertices.reduce((connectivityComponents: ConnectivityComponent[], vertex: Vertex) => {
             if (!visitedVertexes[vertex]) {
                 component = [];
                 this.dfs(vertex, visitedVertexes, component);
@@ -94,17 +122,8 @@ export class Graph {
         }, []);
     }
 
-    public isEulerian(): boolean {
-        this.vertexes.forEach((vertex: Vertex) => {
-            if (!this.adjacentList.get(vertex).length || this.adjacentList.get(vertex).length % 2 !== 0) {
-                return false;
-            }
-        });
-        return true;
-    }
-
     public findEulerianPath(): Vertex[] {
-        if (!this.isEulerian()) {
+        if (!this.isEulerian) {
             return [];
         }
 
@@ -155,9 +174,61 @@ export class Graph {
         });
     }
 
-    private getRibByVertex(vertex: Vertex, ribs: Rib[]) {
-        return ribs.find((rib: Rib) => {
-            return rib.includes(vertex);
+    private getRibByVertex(vertex: Vertex, ribs: Rib[]): Rib | undefined {
+        return ribs.find((rib: Rib) => rib.includes(vertex));
+    }
+
+    public getEulerianPath(): Vertex[] {
+        if (!this.isEulerian) {
+            return [];
+        }
+
+        const ribs = this.ribs;
+        const stack = [ribs[0][0]];
+        const path = [];
+        while (stack.length) {
+            const vertex = stack[stack.length - 1];
+            const vertexDegree = this.getVertexDegree(vertex, ribs);
+
+            if (vertexDegree) {
+                const rib = this.getRibByVertex(vertex, ribs);
+                this.removeFromRibs(rib, ribs);
+                stack.push(rib[0] !== vertex ? rib[0] : rib[1]);
+            } else {
+                stack.pop();
+                path.push(vertex);
+            }
+        }
+
+        return path;
+    }
+
+    public bipartiteComponents(): {[key: string]: Vertex[]} {
+        if (!this.isBipartite) {
+            return {};
+        }
+
+        const L: Vertex[] = [];
+        const R: Vertex[] = [];
+        Array.from(this.vertexColors).forEach(([v, color]: [Vertex, Colors]) => {
+            color === Colors.White ? L.push(v) : R.push(v);
+        })
+        return { L, R };
+    }
+
+    public printGraph(): void {
+        const keys = Array.from(this.adjacentList.keys());
+        keys.forEach((key: Vertex) => {
+            const values = this.adjacentList.get(key);
+            let representation: string = '';
+            values.forEach((value: Vertex) => {
+                representation += value + ' ';
+                console.log(value + ' -> ' + representation);
+            });
         });
+    }
+
+    public floydWarshallAlgorithm() {
+
     }
 }

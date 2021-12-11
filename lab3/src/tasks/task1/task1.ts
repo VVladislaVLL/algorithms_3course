@@ -1,5 +1,4 @@
-import {Graph, Vertex} from '../common/Graph';
-
+import {Graph} from '../../common/Graph';
 
 /* Задание 3.1.
 Граф G задан списками смежностей вершин.Найти компоненты связности графа G.
@@ -26,22 +25,46 @@ export function mainTask1() {
     //     .addEdge('E', 'B').findConnectivityComponent();
 
     // console.log('r = ', r)
+    //
+    // const graph = new Graph(4);
+    // const path = graph
+    //     .addVertices(['A', 'B', 'C', 'D'])
+    //     .addEdge('A', 'B')
+    //     .addEdge('B', 'A')
+    //     .addEdge('B', 'C')
+    //     .addEdge('C', 'B')
+    //     .addEdge('C', 'A')
+    //     .addEdge('A', 'C')
+    //     .addEdge('C', 'D')
+    //     .addEdge('D', 'C')
+    //     .addEdge('D', 'A')
+    //     .addEdge('A', 'D')
+    //     .getEulerianPath();
+    // console.log('path', path)
+
+    // const graph = new Graph(6)
+    // graph
+    //     .addVertices(['A', 'B', 'C', 'D', 'E', 'F'])
+    //     .addEdge('A', 'B')
+    //     .addEdge('A', 'D')
+    //     .addEdge('B', 'C')
+    //     .addEdge('C', 'D')
+    //     .addEdge('B', 'E')
+    //     .addEdge('F', 'D')
+    //     .addEdge('F', 'B')
+    //     .addEdge('E', 'D')
 
     const graph = new Graph(4);
-    const path = graph
-        .addVertexes(['A', 'B', 'C', 'D'])
+    graph
+        .addVertices(['A', 'B', 'C', 'D'])
         .addEdge('A', 'B')
-        .addEdge('B', 'A')
-        .addEdge('B', 'C')
-        .addEdge('C', 'B')
-        .addEdge('C', 'A')
         .addEdge('A', 'C')
-        .addEdge('C', 'D')
-        .addEdge('D', 'C')
-        .addEdge('D', 'A')
         .addEdge('A', 'D')
-        .findEulerianPath();
+        .addEdge('B', 'C')
+        .addEdge('B', 'C')
+        // .addEdge('C', 'D')
 
-    console.log('path', path)
+
+    console.log(graph.getEulerianPath())
 
 }
