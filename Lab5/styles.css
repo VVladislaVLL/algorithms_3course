@@ -1,0 +1,23 @@
+.wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    padding-top: 300px;
+    justify-content: center;
+}
+
+#box {
+    margin-top: auto;
+    width: 700px;
+    height: 700px;
+    border: 5px solid black;
+    border-top: none;
+    position: relative;
+}
+
+.block {
+    border: 1px solid black;
+    background-color: aquamarine;
+    position: absolute;
+    box-sizing: border-box;
+}
